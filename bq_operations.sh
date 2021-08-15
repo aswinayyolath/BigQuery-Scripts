@@ -1,8 +1,6 @@
 #!/bin/bash
 # Script to execute BigQuery Operations
 
-
-
 create_bq_ds() {
     ds=$1
     loc=$2
@@ -19,7 +17,7 @@ remove_bq_ds(){
    ds=$1
    exists=$(bq ls -d | grep -w $ds)
     if [ -n "$exists" ]; then
-       bq rm $ds
+       bq rm -r -d $ds
        echo "$ds successfully deleted"
     else
        echo "$ds does not exists !!!!"
@@ -36,7 +34,8 @@ create_table(){
 
 
 PS3='Please enter your choice: '
-options=("Create Dataset" "Delete Dataset" "Create a Table" "Quit")
+options=("Create Dataset" "Delete Dataset" "Create a Table" "Delete Table"
+         "List Dataset" "List tables in Dataset" "Show table Details" "Quit")
 select opt in "${options[@]}"
 do
     case $opt in
@@ -54,6 +53,24 @@ do
             read -p "Table Name: " Tablename
             read -p "Path to table schema: " TableSchema
             create_table $Datasetname $Tablename $TableSchema
+            ;;
+        "Delete Table")
+            read -p "Dataset Name: " Datasetname
+            read -p "Table Name: " Tablename
+            bq rm $Datasetname.$Tablename            
+            ;;
+        "List Dataset")
+            bq ls
+            ;;
+        "List tables in Dataset")
+            read -p "Dataset Name: " Datasetname
+            bq ls $Datasetname
+            ;;
+        "Show table Details")
+            project=gcloud config list --format 'value(core.project)' 2>/dev/null
+            read -p "Dataset Name: " Datasetname
+            read -p "Table Name: " Tablename
+            bq show --format=prettyjson $project:$Datasetname.$Tablename
             ;;
         "Quit")
             break
